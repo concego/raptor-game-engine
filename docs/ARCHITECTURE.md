@@ -16,17 +16,17 @@ Input → Command → Systems → GameState → Events → Adapters
 
 ```text
 src/
-├── core/          # engine lifecycle, state, turns, commands, events
-├── world/         # grid, cells, positions, entities, occupancy
-├── systems/       # movement, collision, combat, AI, resources
-├── input/         # keyboard, touch, command mapping
-├── rendering/     # DOM renderer first; other renderers later
-├── feedback/      # accessibility, log, audio and haptics adapters
-├── persistence/   # storage adapters and save data
-└── utils/         # small generic utilities
+├── core/ # engine lifecycle, state, turns, commands, events
+├── world/ # grid, cells, positions, entities, occupancy
+├── systems/ # movement, collision, combat, AI, resources
+├── input/ # keyboard, touch, command mapping
+├── rendering/ # DOM renderer first; other renderers later
+├── feedback/ # accessibility, log, audio and haptics adapters
+├── persistence/ # storage adapters and save data
+└── utils/ # small generic utilities
 
-tests/             # automated behavior tests
-examples/          # small public demonstrations
+tests/ # automated behavior tests
+examples/ # small public demonstrations
 ```
 
 ## Rules
@@ -38,7 +38,12 @@ examples/          # small public demonstrations
 5. Game-specific content belongs in the consuming game, not in the engine.
 6. Every reusable system needs a focused example or test.
 
+## Feedback and accessibility
+
+The event history is a passive view: it remains available for review but must not be a live region that is announced again on every turn.
+
+Accessibility adapters may announce concise, intentionally selected state changes through a separate live region. They must never automatically read an entire history or replay all prior events after a new event arrives.
+
 ## First implementation target
 
 The first vertical slice will be a tiny grid simulation with a player, movement, turns, entities and an event log. Dino Crawler will be used as the behavioral reference, not copied as a monolith.
-
