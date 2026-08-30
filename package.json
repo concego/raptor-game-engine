@@ -1,0 +1,13 @@
+{
+  "name": "raptor-game-engine",
+  "version": "0.1.0",
+  "description": "A modular 2D game engine for turn-based grid adventures.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
+
