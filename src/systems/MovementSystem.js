@@ -1,10 +1,12 @@
 import { COMMAND_TYPES } from '../core/Command.js';
+import { EntityManager } from '../world/EntityManager.js';
 import { position } from '../world/Position.js';
 
 export class MovementSystem {
-  constructor({ grid, actorId = 'player' } = {}) {
+  constructor({ grid, entities = null, actorId = 'player' } = {}) {
     if (!grid) throw new TypeError('grid is required');
     this.grid = grid;
+    this.entities = entities;
     this.actorId = actorId;
   }
 
@@ -23,7 +25,21 @@ export class MovementSystem {
       events.emit('movement.blocked', {
         actorId: this.actorId,
         from: actor.position,
-        attempted: target
+        attempted: target,
+        reason: 'outside-grid'
+      });
+      return;
+    }
+
+    const entities = this.entities ?? new EntityManager(state.entities);
+    const obstacle = entities.at(target.x, target.y, { excludeId: this.actorId })[0];
+    if (obstacle) {
+      events.emit('movement.blocked', {
+        actorId: this.actorId,
+        from: actor.position,
+        attempted: target,
+        reason: 'occupied',
+        obstacleId: obstacle.id
       });
       return;
     }
@@ -37,4 +53,3 @@ export class MovementSystem {
     });
   }
 }
-
