@@ -29,7 +29,8 @@
       <h2 id="demo-title">Minimal vertical slice</h2>
       <p>Move the player one orthogonal step at a time. Each command consumes one turn. The same events feed the board, status and a passive historical event log.</p>
       <p><strong>Status:</strong> <output id="status" role="status" aria-live="polite" aria-atomic="true">Loading…</output></p>
-      <div id="board" role="img" aria-label="5 by 5 demonstration grid"></div>
+      <p><small><code>@</code> is the player. <code>X</code> is an occupied cell that blocks movement.</small></p>
+      <div id="board" role="img" aria-label="5 by 5 demonstration grid with a player and an obstacle"></div>
       <div class="controls" aria-label="Movement controls">
         <span class="empty" aria-hidden="true">.</span>
         <button type="button" data-dx="0" data-dy="-1">North</button>
@@ -50,7 +51,8 @@
 
     const engine = new Engine({ width: 5, height: 5 });
     const player = engine.addEntity({ id: 'player', position: { x: 2, y: 2 } });
-    engine.addSystem(new MovementSystem({ grid: engine.grid }));
+    const obstacle = engine.addEntity({ id: 'obstacle', position: { x: 3, y: 2 } });
+    engine.addSystem(new MovementSystem({ grid: engine.grid, entities: engine.entities }));
 
     const board = document.querySelector('#board');
     const status = document.querySelector('#status');
@@ -68,7 +70,8 @@
       let text = '';
       for (let y = 0; y < engine.grid.height; y += 1) {
         for (let x = 0; x < engine.grid.width; x += 1) {
-          text += player.position.x === x && player.position.y === y ? '@' : '·';
+          const occupant = [player, obstacle].find(entity => entity.position.x === x && entity.position.y === y);
+          text += occupant?.id === 'player' ? '@' : occupant ? 'X' : '·';
         }
         text += y === engine.grid.height - 1 ? '' : '\n';
       }
@@ -77,7 +80,9 @@
     }
 
     engine.on('movement.completed', ({ to }) => addLog(`Moved to column ${to.x + 1}, row ${to.y + 1}.`));
-    engine.on('movement.blocked', () => addLog(labels.blocked));
+    engine.on('movement.blocked', ({ reason, obstacleId }) => {
+      addLog(reason === 'occupied' ? `Movement blocked by ${obstacleId}.` : labels.blocked);
+    });
 
     function move(dx, dy) {
       engine.dispatch(moveCommand(dx, dy));
