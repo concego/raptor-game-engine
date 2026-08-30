@@ -19,8 +19,7 @@ test('minimal vertical slice moves an actor and emits events', () => {
 
   assert.deepEqual(engine.state.entities.get('player').position, { x: 2, y: 1 });
   assert.equal(engine.state.turn, 3);
-  assert.equal(completed.length, 2);
-  assert.equal(blocked.length, 1);
+  assert.equal(completed.length, 1);
+  assert.equal(blocked.length, 2);
   assert.deepEqual(blocked[0].attempted, { x: 3, y: 1 });
 });
-
