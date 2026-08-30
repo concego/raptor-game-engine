@@ -3,20 +3,106 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Raptor Game Engine</title>
-  <meta name="description" content="A modular 2D game engine for turn-based grid adventures.">
+  <title>Raptor Game Engine — Minimal Slice</title>
+  <meta name="description" content="A minimal accessible demonstration of the Raptor Game Engine.">
   <style>
     :root { color-scheme: dark; }
-    body { max-width: 50rem; margin: 0 auto; padding: 3rem 1.25rem; font: 1rem/1.6 system-ui, sans-serif; background: #10151c; color: #f2f5f7; }
-    h1 { color: #8bd450; }
+    body { max-width: 52rem; margin: 0 auto; padding: 2rem 1.25rem; font: 1rem/1.6 system-ui, sans-serif; background: #10151c; color: #f2f5f7; }
+    h1 { color: #8bd450; line-height: 1.2; }
+    h2 { margin-top: 2rem; }
+    .panel { padding: 1rem; border: 1px solid #394553; border-radius: .5rem; background: #18212b; }
+    #board { min-height: 7rem; padding: 1rem; border: 1px solid #8bd450; border-radius: .5rem; font: 1.5rem/1.5 monospace; letter-spacing: .25rem; white-space: pre; }
+    .controls { display: grid; grid-template-columns: repeat(3, minmax(4rem, 7rem)); gap: .5rem; justify-content: center; margin: 1rem 0; }
+    button { min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid #6d8092; border-radius: .35rem; background: #263545; color: inherit; font: inherit; cursor: pointer; }
+    button:hover, button:focus-visible { outline: 3px solid #8bd450; outline-offset: 2px; }
+    .empty { visibility: hidden; }
+    li { margin: .25rem 0; }
     code { color: #b8e986; }
   </style>
 </head>
 <body>
   <main>
     <h1>Raptor Game Engine</h1>
-    <p>A modular 2D game engine for turn-based grid adventures, exploration, combat, and inclusive game design.</p>
-    <p>The engine is under development. This page will become the public test hub.</p>
+    <p>A modular 2D engine for turn-based grid adventures, exploration, combat, and inclusive game design.</p>
+
+    <section class="panel" aria-labelledby="demo-title">
+      <h2 id="demo-title">Minimal vertical slice</h2>
+      <p>Move the player one orthogonal step at a time. Each command consumes one turn. The same events feed the board, status and accessible event log.</p>
+      <p><strong>Status:</strong> <output id="status" aria-live="polite">Loading…</output></p>
+      <div id="board" role="img" aria-label="5 by 5 demonstration grid"></div>
+      <div class="controls" aria-label="Movement controls">
+        <span class="empty" aria-hidden="true">.</span>
+        <button type="button" data-dx="0" data-dy="-1">North</button>
+        <span class="empty" aria-hidden="true">.</span>
+        <button type="button" data-dx="-1" data-dy="0">West</button>
+        <button type="button" data-dx="0" data-dy="1">South</button>
+        <button type="button" data-dx="1" data-dy="0">East</button>
+      </div>
+      <p><small>Keyboard: arrow keys or W A S D.</small></p>
+      <h3>Event log</h3>
+      <ol id="log" aria-live="polite" aria-relevant="additions"></ol>
+    </section>
   </main>
+
+  <script type="module">
+    import { Engine, MovementSystem, moveCommand } from './src/index.js';
+
+    const engine = new Engine({ width: 5, height: 5 });
+    const player = engine.addEntity({ id: 'player', position: { x: 2, y: 2 } });
+    engine.addSystem(new MovementSystem({ grid: engine.grid }));
+
+    const board = document.querySelector('#board');
+    const status = document.querySelector('#status');
+    const log = document.querySelector('#log');
+    const labels = { blocked: 'Movement blocked by the edge of the grid.' };
+
+    function addLog(message) {
+      const item = document.createElement('li');
+      item.textContent = message;
+      log.prepend(item);
+      while (log.children.length > 5) log.lastElementChild.remove();
+    }
+
+    function render() {
+      let text = '';
+      for (let y = 0; y < engine.grid.height; y += 1) {
+        for (let x = 0; x < engine.grid.width; x += 1) {
+          text += player.position.x === x && player.position.y === y ? '@' : '·';
+        }
+        text += y === engine.grid.height - 1 ? '' : '\n';
+      }
+      board.textContent = text;
+      status.textContent = `Turn ${engine.state.turn}; player at column ${player.position.x + 1}, row ${player.position.y + 1}.`;
+    }
+
+    engine.on('movement.completed', ({ to }) => addLog(`Moved to column ${to.x + 1}, row ${to.y + 1}.`));
+    engine.on('movement.blocked', () => addLog(labels.blocked));
+
+    function move(dx, dy) {
+      engine.dispatch(moveCommand(dx, dy));
+      render();
+    }
+
+    document.querySelectorAll('[data-dx]').forEach(button => {
+      button.addEventListener('click', () => move(Number(button.dataset.dx), Number(button.dataset.dy)));
+    });
+
+    document.addEventListener('keydown', event => {
+      const directions = {
+        ArrowUp: [0, -1], w: [0, -1], W: [0, -1],
+        ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0],
+        ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
+        ArrowRight: [1, 0], d: [1, 0], D: [1, 0]
+      };
+      const direction = directions[event.key];
+      if (!direction) return;
+      event.preventDefault();
+      move(...direction);
+    });
+
+    engine.start();
+    addLog('Game started.');
+    render();
+  </script>
 </body>
 </html>
