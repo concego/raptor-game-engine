@@ -1,6 +1,7 @@
 import { EventBus } from './EventBus.js';
 import { createGameState } from './GameState.js';
 import { TurnManager } from './TurnManager.js';
+import { EntityManager } from '../world/EntityManager.js';
 import { Grid } from '../world/Grid.js';
 
 export class Engine {
@@ -8,6 +9,7 @@ export class Engine {
     this.events = new EventBus();
     this.state = createGameState({ width, height, seed });
     this.grid = new Grid(width, height);
+    this.entities = new EntityManager(this.state.entities);
     this.turns = new TurnManager({
       state: this.state,
       events: this.events,
@@ -25,10 +27,7 @@ export class Engine {
   }
 
   addEntity(entity) {
-    if (!entity?.id) throw new TypeError('entity.id is required');
-    if (!entity.position) throw new TypeError('entity.position is required');
-    this.state.entities.set(entity.id, entity);
-    return entity;
+    return this.entities.add(entity);
   }
 
   start() {
@@ -41,4 +40,3 @@ export class Engine {
     return this.turns.execute(command);
   }
 }
-
