@@ -17,8 +17,8 @@ Input → Command → Systems → GameState → Events → Adapters
 ```text
 src/
 ├── core/ # engine lifecycle, state, turns, commands, events
-├── world/ # grid, cells, positions, entities, occupancy
-├── systems/ # movement, collision, combat, AI, resources
+├── world/ # maps, grids, cells, positions, entities, occupancy
+├── systems/ # movement, map transitions, collision, combat, AI, resources
 ├── input/ # keyboard, touch, command mapping
 ├── rendering/ # renderer contract and DOM/SVG visual adapters
 ├── feedback/ # accessibility, log, audio and haptics adapters
@@ -39,6 +39,14 @@ examples/ # small public demonstrations
 6. Every reusable system needs a focused example or test.
 7. Rejected or blocked actions may return `{ consumesTurn: false }`; only resolved turn-consuming actions advance the turn.
 8. Visual renderers are optional views; text, audio and accessibility adapters remain independent of them.
+
+## Multiple maps and transitions
+
+A game may define multiple named maps through `Engine({ maps, mapId })`. Each map owns its grid dimensions and entity collection. `GameState.mapId`, `GameState.grid` and `GameState.entities` always describe the active map, while `GameState.maps` preserves the inactive maps.
+
+A portal is a passable entity created with `createPortal({ position, toMapId, toPosition })`. `MapTransitionSystem` runs after `MovementSystem`: entering a portal transfers the actor, switches the active map, updates the active entity collection and emits `map.transitioned`. The movement itself still consumes one turn. A missing map, invalid destination or occupied destination emits `map.transition.blocked` instead of crashing the game.
+
+The engine does not assume that every transition is a door or portal. A consuming game can create other passable transition entities with the same `portal` contract, or provide another system for ladders, stairs, elevators and one-way exits.
 
 ## Feedback and accessibility
 
