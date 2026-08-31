@@ -13,12 +13,15 @@ test('minimal vertical slice moves an actor and emits events', () => {
   engine.on('movement.blocked', event => blocked.push(event));
   engine.start();
 
-  engine.dispatch(moveCommand(1, 0));
-  engine.dispatch(moveCommand(1, 0));
-  engine.dispatch(moveCommand(1, 0));
+  const moved = engine.dispatch(moveCommand(1, 0));
+  const firstBlocked = engine.dispatch(moveCommand(1, 0));
+  const secondBlocked = engine.dispatch(moveCommand(1, 0));
 
   assert.deepEqual(engine.state.entities.get('player').position, { x: 2, y: 1 });
-  assert.equal(engine.state.turn, 3);
+  assert.equal(engine.state.turn, 1);
+  assert.equal(moved.consumedTurn, true);
+  assert.equal(firstBlocked.consumedTurn, false);
+  assert.equal(secondBlocked.consumedTurn, false);
   assert.equal(completed.length, 1);
   assert.equal(blocked.length, 2);
   assert.deepEqual(blocked[0].attempted, { x: 3, y: 1 });
