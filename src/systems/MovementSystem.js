@@ -28,7 +28,7 @@ export class MovementSystem {
         attempted: target,
         reason: 'outside-grid'
       });
-      return;
+      return { consumesTurn: false };
     }
 
     const entities = this.entities ?? new EntityManager(state.entities);
@@ -41,7 +41,7 @@ export class MovementSystem {
         reason: 'occupied',
         obstacleId: obstacle.id
       });
-      return;
+      return { consumesTurn: false };
     }
 
     const from = actor.position;
@@ -51,5 +51,6 @@ export class MovementSystem {
       from,
       to: target
     });
+    return { consumesTurn: true };
   }
 }
