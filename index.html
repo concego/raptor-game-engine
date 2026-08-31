@@ -11,10 +11,13 @@
     h1 { color: #8bd450; line-height: 1.2; }
     h2 { margin-top: 2rem; }
     .panel { padding: 1rem; border: 1px solid #394553; border-radius: .5rem; background: #18212b; }
-    #board { min-height: 7rem; padding: 1rem; border: 1px solid #8bd450; border-radius: .5rem; font: 1.5rem/1.5 monospace; letter-spacing: .25rem; white-space: pre; }
+    .renderer-choice { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: 1rem 0; }
+    select { min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid #6d8092; border-radius: .35rem; background: #263545; color: inherit; font: inherit; }
+    #board { min-height: 7rem; padding: 1rem; overflow: auto; border: 1px solid #8bd450; border-radius: .5rem; font: 1.5rem/1.5 monospace; letter-spacing: .25rem; white-space: pre; }
+    #board svg { display: block; width: min(100%, 24rem); height: auto; letter-spacing: normal; }
     .controls { display: grid; grid-template-columns: repeat(3, minmax(4rem, 7rem)); gap: .5rem; justify-content: center; margin: 1rem 0; }
     button { min-height: 2.75rem; padding: .5rem .75rem; border: 1px solid #6d8092; border-radius: .35rem; background: #263545; color: inherit; font: inherit; cursor: pointer; }
-    button:hover, button:focus-visible { outline: 3px solid #8bd450; outline-offset: 2px; }
+    button:hover, button:focus-visible, select:focus-visible { outline: 3px solid #8bd450; outline-offset: 2px; }
     .empty { visibility: hidden; }
     li { margin: .25rem 0; }
     code { color: #b8e986; }
@@ -29,8 +32,16 @@
       <h2 id="demo-title">Minimal vertical slice</h2>
       <p>Move the player one orthogonal step at a time. Each valid move consumes one turn. Invalid moves are rejected without advancing the turn. The same events feed the board, status and a passive historical event log.</p>
       <p><strong>Status:</strong> <output id="status" role="status" aria-live="polite" aria-atomic="true">Loading…</output></p>
+      <div class="renderer-choice">
+        <label for="renderer-select">Visual renderer:</label>
+        <select id="renderer-select">
+          <option value="dom">DOM text grid</option>
+          <option value="svg">SVG grid</option>
+        </select>
+      </div>
+      <p><small>The renderer is visual only. Status and event log remain available as text.</small></p>
       <p><small><code>@</code> is the player. <code>X</code> is an occupied cell that blocks movement.</small></p>
-      <div id="board" role="img" aria-label="5 by 5 demonstration grid with a player and an obstacle"></div>
+      <div id="board" aria-hidden="true"></div>
       <div class="controls" aria-label="Movement controls">
         <span class="empty" aria-hidden="true">.</span>
         <button type="button" data-dx="0" data-dy="-1">North</button>
@@ -47,7 +58,13 @@
   </main>
 
   <script type="module">
-    import { Engine, MovementSystem, moveCommand } from './src/index.js';
+    import {
+      DomRenderer,
+      Engine,
+      MovementSystem,
+      SvgRenderer,
+      moveCommand
+    } from './src/index.js';
 
     const engine = new Engine({ width: 5, height: 5 });
     const player = engine.addEntity({ id: 'player', position: { x: 2, y: 2 } });
@@ -57,7 +74,14 @@
     const board = document.querySelector('#board');
     const status = document.querySelector('#status');
     const log = document.querySelector('#log');
+    const rendererSelect = document.querySelector('#renderer-select');
     const labels = { blocked: 'Movement blocked by the edge of the grid.' };
+    const symbolFor = entity => entity.id === 'player' ? '@' : entity.id === 'obstacle' ? 'X' : '?';
+    const renderers = {
+      dom: new DomRenderer({ symbolFor }),
+      svg: new SvgRenderer({ symbolFor, cellSize: 48 })
+    };
+    let activeRenderer = null;
 
     function addLog(message) {
       const item = document.createElement('li');
@@ -67,16 +91,15 @@
     }
 
     function render() {
-      let text = '';
-      for (let y = 0; y < engine.grid.height; y += 1) {
-        for (let x = 0; x < engine.grid.width; x += 1) {
-          const occupant = [player, obstacle].find(entity => entity.position.x === x && entity.position.y === y);
-          text += occupant?.id === 'player' ? '@' : occupant ? 'X' : '·';
-        }
-        text += y === engine.grid.height - 1 ? '' : '\n';
-      }
-      board.textContent = text;
+      activeRenderer?.render(engine.state);
       status.textContent = `Turn ${engine.state.turn}; player at column ${player.position.x + 1}, row ${player.position.y + 1}.`;
+    }
+
+    function selectRenderer(name) {
+      activeRenderer?.destroy();
+      activeRenderer = renderers[name] ?? renderers.dom;
+      activeRenderer.mount(board);
+      render();
     }
 
     engine.on('movement.completed', ({ to }) => addLog(`Moved to column ${to.x + 1}, row ${to.y + 1}.`));
@@ -89,6 +112,7 @@
       render();
     }
 
+    rendererSelect.addEventListener('change', () => selectRenderer(rendererSelect.value));
     document.querySelectorAll('[data-dx]').forEach(button => {
       button.addEventListener('click', () => move(Number(button.dataset.dx), Number(button.dataset.dy)));
     });
@@ -108,7 +132,7 @@
 
     engine.start();
     addLog('Game started.');
-    render();
+    selectRenderer(rendererSelect.value);
   </script>
 </body>
 </html>
