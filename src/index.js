@@ -7,3 +7,6 @@ export { Grid } from './world/Grid.js';
 export { DIRECTIONS, position, addPosition, samePosition } from './world/Position.js';
 export { EntityManager } from './world/EntityManager.js';
 export { MovementSystem } from './systems/MovementSystem.js';
+export { Renderer } from './rendering/Renderer.js';
+export { DomRenderer } from './rendering/DomRenderer.js';
+export { SvgRenderer } from './rendering/SvgRenderer.js';
