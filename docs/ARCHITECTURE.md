@@ -37,6 +37,7 @@ examples/ # small public demonstrations
 4. Rendering, audio, accessibility and persistence are replaceable adapters.
 5. Game-specific content belongs in the consuming game, not in the engine.
 6. Every reusable system needs a focused example or test.
+7. Rejected or blocked actions may return `{ consumesTurn: false }`; only resolved turn-consuming actions advance the turn.
 
 ## Feedback and accessibility
 
