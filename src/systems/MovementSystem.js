@@ -20,8 +20,15 @@ export class MovementSystem {
       actor.position.x + command.dx,
       actor.position.y + command.dy
     );
+    const grid = state.grid ?? this.grid;
+    const contains = typeof grid.contains === 'function'
+      ? grid.contains(target.x, target.y)
+      : target.x >= 0
+        && target.y >= 0
+        && target.x < grid.width
+        && target.y < grid.height;
 
-    if (!this.grid.contains(target.x, target.y)) {
+    if (!contains) {
       events.emit('movement.blocked', {
         actorId: this.actorId,
         from: actor.position,
@@ -32,7 +39,10 @@ export class MovementSystem {
     }
 
     const entities = this.entities ?? new EntityManager(state.entities);
-    const obstacle = entities.at(target.x, target.y, { excludeId: this.actorId })[0];
+    if (entities.entities !== state.entities) entities.setCollection(state.entities);
+    const obstacle = entities
+      .at(target.x, target.y, { excludeId: this.actorId })
+      .find(entity => entity.blocksMovement !== false);
     if (obstacle) {
       events.emit('movement.blocked', {
         actorId: this.actorId,
