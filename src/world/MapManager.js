@@ -56,9 +56,12 @@ export class MapManager {
     this.state.mapId = toMapId;
     this.state.grid = destinationMap.grid;
     this.state.entities = destinationMap.entities;
-    this.entityManager?.setCollection(destinationMap.entities);
+    if (typeof this.entityManager?.setCollection === 'function') {
+      this.entityManager.setCollection(destinationMap.entities);
+    } else if (this.entityManager) {
+      this.entityManager.entities = destinationMap.entities;
+    }
 
     return entity;
   }
 }
-
