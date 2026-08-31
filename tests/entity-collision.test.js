@@ -15,11 +15,11 @@ test('movement is blocked when the destination is occupied', () => {
   const result = engine.dispatch(moveCommand(1, 0));
 
   assert.equal(result.accepted, true);
+  assert.equal(result.consumedTurn, false);
   assert.deepEqual(player.position, { x: 1, y: 1 });
-  assert.equal(engine.state.turn, 1);
+  assert.equal(engine.state.turn, 0);
   assert.equal(blocked.length, 1);
   assert.equal(blocked[0].reason, 'occupied');
   assert.equal(blocked[0].obstacleId, 'obstacle');
   assert.equal(engine.entities.at(2, 1)[0].id, 'obstacle');
 });
-
