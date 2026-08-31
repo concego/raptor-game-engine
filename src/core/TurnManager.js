@@ -19,16 +19,22 @@ export class TurnManager {
 
     this.state.phase = 'resolving';
     const context = { state: this.state, events: this.events };
+    const results = [];
     this.events.emit('turn.started', { turn: this.state.turn, command });
 
     for (const system of this.systems) {
-      system.process(command, context);
+      results.push(system.process(command, context));
     }
 
-    this.state.turn += 1;
+    const consumedTurn = results.every(result => result?.consumesTurn !== false);
+    if (consumedTurn) {
+      this.state.turn += 1;
+      this.events.emit('turn.completed', { turn: this.state.turn, command });
+    } else {
+      this.events.emit('turn.skipped', { turn: this.state.turn, command });
+    }
+
     this.state.phase = 'playing';
-    this.events.emit('turn.completed', { turn: this.state.turn, command });
-    return { accepted: true };
+    return { accepted: true, consumedTurn };
   }
 }
-
