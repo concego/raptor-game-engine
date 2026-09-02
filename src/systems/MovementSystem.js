@@ -55,7 +55,11 @@ export class MovementSystem {
     }
 
     const from = actor.position;
-    actor.position = target;
+    if (typeof entities.updatePosition === 'function') {
+      entities.updatePosition(this.actorId, target);
+    } else {
+      actor.position = target;
+    }
     events.emit('movement.completed', {
       actorId: this.actorId,
       from,
