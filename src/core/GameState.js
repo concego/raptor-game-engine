@@ -8,7 +8,6 @@ function validateMapDefinition(definition) {
   if (!Number.isInteger(definition.height) || definition.height < 1) {
     throw new TypeError('map.height must be a positive integer');
   }
-
   return {
     id: definition.id,
     grid: { width: definition.width, height: definition.height },
@@ -62,16 +61,15 @@ export function cloneGameState(state) {
     [...state.maps].map(([id, map]) => [id, {
       ...map,
       grid: { ...map.grid },
-      entities: new Map(map.entities)
+      entities: structuredClone(map.entities)
     }])
   );
   const activeMap = maps.get(state.mapId);
-
   return {
     ...state,
     maps,
     grid: activeMap?.grid ?? { ...state.grid },
-    entities: activeMap?.entities ?? new Map(state.entities),
+    entities: activeMap?.entities ?? structuredClone(state.entities),
     game: structuredClone(state.game)
   };
 }
