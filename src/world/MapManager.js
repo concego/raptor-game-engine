@@ -35,33 +35,30 @@ export class MapManager {
     const sourceMap = this.get(this.state.mapId);
     const destinationMap = this.get(toMapId);
     const entity = sourceMap.entities.get(entityId);
-
     if (!entity) throw new Error(`entity not found: ${entityId}`);
     if (!isInside(destinationMap, toPosition)) {
       throw new RangeError(`destination is outside map: ${toMapId}`);
     }
-
-    const blocker = [...destinationMap.entities.values()].find(candidate =>
-      candidate.id !== entityId
-      && candidate.blocksMovement !== false
-      && samePosition(candidate.position, toPosition)
+    const blocker = [...destinationMap.entities.values()].find(
+      candidate => candidate.id !== entityId
+        && candidate.blocksMovement !== false
+        && samePosition(candidate.position, toPosition)
     );
     if (blocker) {
       throw new Error(`destination is occupied: ${blocker.id}`);
     }
-
     sourceMap.entities.delete(entityId);
     entity.position = { ...toPosition };
     destinationMap.entities.set(entityId, entity);
     this.state.mapId = toMapId;
     this.state.grid = destinationMap.grid;
+    this.state.tiles = destinationMap.tiles;
     this.state.entities = destinationMap.entities;
     if (typeof this.entityManager?.setCollection === 'function') {
       this.entityManager.setCollection(destinationMap.entities);
     } else if (this.entityManager) {
       this.entityManager.entities = destinationMap.entities;
     }
-
     return entity;
   }
 }
