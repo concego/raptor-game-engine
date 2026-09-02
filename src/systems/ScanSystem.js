@@ -1,14 +1,20 @@
 import { COMMAND_TYPES } from '../core/Command.js';
+import { FACING } from '../world/Position.js';
 
-const DIRECTION_ANGLES = Object.freeze({ N: 0, E: 90, S: 180, W: 270 });
+const FACING_ANGLES = Object.freeze({
+  [FACING.NORTH]: 0,
+  [FACING.EAST]: 90,
+  [FACING.SOUTH]: 180,
+  [FACING.WEST]: 270
+});
 
 function manhattanDistance(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
 
-function normalizeDirection(direction) {
-  const value = typeof direction === 'string' ? direction.toUpperCase() : null;
-  return value in DIRECTION_ANGLES ? value : null;
+function normalizeFacing(facing) {
+  const value = typeof facing === 'string' ? facing.toUpperCase() : null;
+  return value in FACING_ANGLES ? value : null;
 }
 
 function isInVisionCone(origin, target, direction, angle) {
@@ -18,7 +24,7 @@ function isInVisionCone(origin, target, direction, angle) {
   if (angle >= 360) return true;
 
   const targetAngle = ((Math.atan2(dc, -dr) * 180 / Math.PI) + 360) % 360;
-  const faceAngle = DIRECTION_ANGLES[direction];
+  const faceAngle = FACING_ANGLES[direction];
   let difference = Math.abs(targetAngle - faceAngle);
   if (difference > 180) difference = 360 - difference;
   return difference <= angle / 2;
@@ -109,7 +115,7 @@ export class ScanSystem {
     if (!actor) throw new Error(`actor not found: ${this.actorId}`);
     const origin = { ...actor.position };
     const direction = this.visionCone
-      ? normalizeDirection(this.getDirection({ state, actor, origin, events }))
+      ? normalizeFacing(this.getDirection({ state, actor, origin, events }))
       : null;
 
     if (this.visionCone && !direction) {
