@@ -2,8 +2,13 @@ import { samePosition } from './Position.js';
 
 export class EntityManager {
   constructor(entities = new Map()) {
+    this.setCollection(entities);
+  }
+
+  setCollection(entities) {
     if (!(entities instanceof Map)) throw new TypeError('entities must be a Map');
     this.entities = entities;
+    return this;
   }
 
   add(entity) {
@@ -38,4 +43,3 @@ export class EntityManager {
     return this.at(x, y, options).length > 0;
   }
 }
-
