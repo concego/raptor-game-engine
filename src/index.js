@@ -4,6 +4,7 @@ export { createGameState, cloneGameState } from './core/GameState.js';
 export { TurnManager } from './core/TurnManager.js';
 export { COMMAND_TYPES, moveCommand, waitCommand, scanCommand } from './core/Command.js';
 export { Grid } from './world/Grid.js';
+export { createTileLayer, getTile, setTile, tileBlocksVision } from './world/TileLayer.js';
 export { DIRECTIONS, FACING, position, addPosition, samePosition } from './world/Position.js';
 export { EntityManager } from './world/EntityManager.js';
 export { MapManager } from './world/MapManager.js';
