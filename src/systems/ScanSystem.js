@@ -63,6 +63,7 @@ export class ScanSystem {
     distance = 'manhattan',
     getTargets = ({ state }) => state.entities.values(),
     filter = entity => entity.scanable !== false,
+    isVisible = () => true,
     describe = null,
     cost = null,
     consumesTurn = false,
@@ -78,6 +79,7 @@ export class ScanSystem {
     }
     if (typeof getTargets !== 'function') throw new TypeError('getTargets must be a function');
     if (typeof filter !== 'function') throw new TypeError('filter must be a function');
+    if (typeof isVisible !== 'function') throw new TypeError('isVisible must be a function');
     if (describe !== null && typeof describe !== 'function') {
       throw new TypeError('describe must be a function or null');
     }
@@ -92,6 +94,7 @@ export class ScanSystem {
     this.distance = distance === 'manhattan' ? manhattanDistance : distance;
     this.getTargets = getTargets;
     this.filter = filter;
+    this.isVisible = isVisible;
     this.describe = describe;
     this.cost = cost;
     this.consumesTurn = consumesTurn;
@@ -141,6 +144,7 @@ export class ScanSystem {
       const distance = this.distance(origin, entity.position, { state, actor, entity });
       if (!Number.isFinite(distance) || distance < 0 || distance > this.range) continue;
       if (this.visionCone && !isInVisionCone(origin, entity.position, direction, this.visionCone.angle)) continue;
+      if (!this.isVisible(entity, { state, actor, origin, distance, events })) continue;
 
       const result = {
         entityId: entity.id,
