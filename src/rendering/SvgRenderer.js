@@ -1,4 +1,5 @@
 import { Renderer } from './Renderer.js';
+import { getTile } from '../world/TileLayer.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -6,14 +7,24 @@ function defaultSymbol(entity) {
   return entity?.symbol ?? entity?.glyph ?? String(entity?.id ?? '?').charAt(0);
 }
 
+function defaultTileColor(tile) {
+  return tile?.color ?? 'transparent';
+}
+
 export class SvgRenderer extends Renderer {
-  constructor({ cellSize = 32, symbolFor = defaultSymbol, ariaHidden = true } = {}) {
+  constructor({
+    cellSize = 32,
+    symbolFor = defaultSymbol,
+    tileColorFor = defaultTileColor,
+    ariaHidden = true
+  } = {}) {
     super();
     if (!Number.isInteger(cellSize) || cellSize < 1) {
       throw new TypeError('cellSize must be a positive integer');
     }
     this.cellSize = cellSize;
     this.symbolFor = symbolFor;
+    this.tileColorFor = tileColorFor;
     this.ariaHidden = ariaHidden;
     this.target = null;
   }
@@ -47,12 +58,16 @@ export class SvgRenderer extends Renderer {
 
     for (let y = 0; y < height; y += 1) {
       for (let x = 0; x < width; x += 1) {
+        const tile = getTile(state.tiles, x, y);
         const cell = document.createElementNS(SVG_NS, 'rect');
         cell.setAttribute('x', x * this.cellSize);
         cell.setAttribute('y', y * this.cellSize);
         cell.setAttribute('width', this.cellSize);
         cell.setAttribute('height', this.cellSize);
-        cell.setAttribute('fill', 'transparent');
+        cell.setAttribute(
+          'fill',
+          this.tileColorFor(tile, x, y, state) ?? 'transparent'
+        );
         cell.setAttribute('stroke', 'currentColor');
         svg.append(cell);
       }
@@ -67,10 +82,9 @@ export class SvgRenderer extends Renderer {
       label.setAttribute('text-anchor', 'middle');
       label.setAttribute('dominant-baseline', 'central');
       label.setAttribute('font-size', this.cellSize * 0.6);
-      label.textContent = this.symbolFor(entity);
+      label.textContent = this.symbolFor(entity, x, y, state);
       svg.append(label);
     }
-
     this.target.replaceChildren(svg);
     return svg;
   }
@@ -80,4 +94,3 @@ export class SvgRenderer extends Renderer {
     this.target = null;
   }
 }
-
