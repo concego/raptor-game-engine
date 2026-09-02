@@ -1,13 +1,24 @@
 import { Renderer } from './Renderer.js';
+import { getTile } from '../world/TileLayer.js';
 
 function defaultSymbol(entity) {
   return entity?.symbol ?? entity?.glyph ?? String(entity?.id ?? '?').charAt(0);
 }
 
+function defaultTileSymbol(tile) {
+  if (tile == null) return '·';
+  return tile.symbol ?? tile.glyph ?? tile.id ?? '·';
+}
+
 export class DomRenderer extends Renderer {
-  constructor({ symbolFor = defaultSymbol, ariaHidden = true } = {}) {
+  constructor({
+    symbolFor = defaultSymbol,
+    tileSymbolFor = defaultTileSymbol,
+    ariaHidden = true
+  } = {}) {
     super();
     this.symbolFor = symbolFor;
+    this.tileSymbolFor = tileSymbolFor;
     this.ariaHidden = ariaHidden;
     this.target = null;
   }
@@ -38,8 +49,13 @@ export class DomRenderer extends Renderer {
     for (let y = 0; y < height; y += 1) {
       let line = '';
       for (let x = 0; x < width; x += 1) {
-        const entity = entities.find(item => item.position?.x === x && item.position?.y === y);
-        line += entity ? this.symbolFor(entity) : '·';
+        const entity = entities.find(
+          item => item.position?.x === x && item.position?.y === y
+        );
+        const tile = getTile(state.tiles, x, y);
+        line += entity
+          ? this.symbolFor(entity, x, y, state)
+          : this.tileSymbolFor(tile, x, y, state);
       }
       lines.push(line);
     }
