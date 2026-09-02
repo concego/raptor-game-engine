@@ -57,6 +57,7 @@ test('tile layer validates dimensions and clones tile data', () => {
 
 test('cloneGameState isolates tile data across maps', () => {
   const state = createGameState({
+    mapId: 'meadow',
     maps: [{
       id: 'meadow',
       width: 2,
@@ -68,6 +69,5 @@ test('cloneGameState isolates tile data across maps', () => {
 
   clone.tiles.cells[0][0].id = 'lava';
   assert.equal(state.tiles.cells[0][0].id, 'grass');
-  assert.notEqual(clone.maps.get('main').tiles, state.maps.get('main').tiles);
+  assert.notEqual(clone.maps.get('meadow').tiles, state.maps.get('meadow').tiles);
 });
-
