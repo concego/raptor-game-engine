@@ -1,3 +1,5 @@
+import { createTileLayer } from '../world/TileLayer.js';
+
 function validateMapDefinition(definition) {
   if (!definition || typeof definition.id !== 'string' || definition.id.length === 0) {
     throw new TypeError('map.id must be a non-empty string');
@@ -11,6 +13,7 @@ function validateMapDefinition(definition) {
   return {
     id: definition.id,
     grid: { width: definition.width, height: definition.height },
+    tiles: createTileLayer(definition.width, definition.height, definition.tiles),
     entities: new Map()
   };
 }
@@ -51,6 +54,7 @@ export function createGameState({
     mapId,
     maps: mapRecords,
     grid: activeMap.grid,
+    tiles: activeMap.tiles,
     entities: activeMap.entities,
     game: {}
   };
@@ -61,6 +65,9 @@ export function cloneGameState(state) {
     [...state.maps].map(([id, map]) => [id, {
       ...map,
       grid: { ...map.grid },
+      tiles: map.tiles
+        ? structuredClone(map.tiles)
+        : createTileLayer(map.grid.width, map.grid.height),
       entities: structuredClone(map.entities)
     }])
   );
@@ -69,6 +76,8 @@ export function cloneGameState(state) {
     ...state,
     maps,
     grid: activeMap?.grid ?? { ...state.grid },
+    tiles: activeMap?.tiles
+      ?? createTileLayer(state.grid.width, state.grid.height),
     entities: activeMap?.entities ?? structuredClone(state.entities),
     game: structuredClone(state.game)
   };
