@@ -1,8 +1,33 @@
 {
   "name": "raptor-game-engine",
   "version": "0.1.0",
-  "description": "A modular 2D game engine for turn-based grid adventures.",
+  "description": "A modular 2D game engine for turn-based grid adventures, exploration, combat, and inclusive game design.",
   "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "docs"
+  ],
+  "keywords": [
+    "game-engine",
+    "2d",
+    "grid",
+    "turn-based",
+    "javascript",
+    "inclusive-design"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/concego/raptor-game-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/concego/raptor-game-engine/issues"
+  },
+  "homepage": "https://github.com/concego/raptor-game-engine#readme",
   "scripts": {
     "test": "node --test"
   },
@@ -10,4 +35,3 @@
     "node": ">=18"
   }
 }
-
