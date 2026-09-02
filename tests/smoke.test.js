@@ -21,6 +21,7 @@ test('EventBus subscribes, emits and unsubscribes', () => {
 
 test('TurnManager processes systems and advances the turn', () => {
   const state = createGameState({ width: 3, height: 3 });
+  state.phase = 'playing';
   const events = new EventBus();
   const seen = [];
   events.on('turn.completed', event => seen.push(event.turn));
@@ -33,6 +34,56 @@ test('TurnManager processes systems and advances the turn', () => {
   assert.equal(state.turn, 1);
   assert.equal(state.game.lastCommand.type, 'wait');
   assert.deepEqual(seen, [1]);
+});
+
+test('TurnManager validates phase and command type', () => {
+  const state = createGameState({ width: 3, height: 3 });
+  const events = new EventBus();
+  const manager = new TurnManager({ state, events });
+
+  assert.deepEqual(manager.execute({ type: 'wait' }), {
+    accepted: false,
+    reason: 'invalid-phase',
+    phase: 'ready'
+  });
+  assert.equal(state.turn, 0);
+
+  state.phase = 'playing';
+  assert.deepEqual(manager.execute({ type: 'dance' }), {
+    accepted: false,
+    reason: 'unknown-command',
+    type: 'dance'
+  });
+  assert.equal(state.turn, 0);
+  assert.equal(state.phase, 'playing');
+  assert.deepEqual(manager.execute(null), {
+    accepted: false,
+    reason: 'invalid-command'
+  });
+});
+
+test('TurnManager restores playing phase when a system fails', () => {
+  const state = createGameState({ width: 3, height: 3 });
+  state.phase = 'playing';
+  const events = new EventBus();
+  const failure = new Error('system failed');
+  const failed = [];
+  events.on('turn.failed', event => failed.push(event));
+  const manager = new TurnManager({
+    state,
+    events,
+    systems: [{ process: () => { throw failure; } }]
+  });
+
+  const result = manager.execute({ type: 'wait' });
+
+  assert.equal(result.accepted, false);
+  assert.equal(result.reason, 'turn-failed');
+  assert.equal(result.error, failure);
+  assert.equal(state.phase, 'playing');
+  assert.equal(state.turn, 0);
+  assert.equal(failed.length, 1);
+  assert.equal(failed[0].error, failure);
 });
 
 test('cloneGameState isolates nested entity state', () => {
