@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { Engine, MovementSystem, moveCommand } from '../src/index.js';
+import { Engine, EntityManager, MovementSystem, moveCommand } from '../src/index.js';
 
 test('movement is blocked when the destination is occupied', () => {
   const engine = new Engine({ width: 4, height: 3 });
@@ -22,4 +22,24 @@ test('movement is blocked when the destination is occupied', () => {
   assert.equal(blocked[0].reason, 'occupied');
   assert.equal(blocked[0].obstacleId, 'obstacle');
   assert.equal(engine.entities.at(2, 1)[0].id, 'obstacle');
+});
+
+test('EntityManager switches collections with validation', () => {
+  const first = new Map([
+    ['player', { id: 'player', position: { x: 0, y: 0 } }]
+  ]);
+  const second = new Map([
+    ['exit', { id: 'exit', position: { x: 2, y: 1 } }]
+  ]);
+  const manager = new EntityManager(first);
+
+  assert.equal(manager.get('player').id, 'player');
+  assert.equal(manager.setCollection(second), manager);
+  assert.equal(manager.entities, second);
+  assert.equal(manager.get('player'), undefined);
+  assert.equal(manager.get('exit').id, 'exit');
+  assert.throws(
+    () => manager.setCollection([]),
+    /entities must be a Map/
+  );
 });
