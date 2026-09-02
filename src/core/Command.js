@@ -1,6 +1,7 @@
 export const COMMAND_TYPES = Object.freeze({
   MOVE: 'move',
-  WAIT: 'wait'
+  WAIT: 'wait',
+  SCAN: 'scan'
 });
 
 export function moveCommand(dx, dy) {
@@ -17,3 +18,6 @@ export function waitCommand() {
   return { type: COMMAND_TYPES.WAIT };
 }
 
+export function scanCommand() {
+  return { type: COMMAND_TYPES.SCAN };
+}
